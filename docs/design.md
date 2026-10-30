@@ -9,7 +9,7 @@ flowchart LR
   cron["GitHub Actions<br>(schedule)"] --> app["notifier<br>(Node.js)"]
   app -- Search API --> gh["GitHub"]
   app -- 状態の読み書き --> vars["Repository variables"]
-  app -- 要約 --> models["GitHub Models"]
+  app -- 要約 --> llm["LLM サービス<br>(OpenAI 互換 API)"]
   app -- 残り通数確認 / push --> line["LINE Messaging API"]
   line --> user["利用者の LINE"]
 ```
@@ -28,7 +28,7 @@ flowchart LR
 | 設定ファイルの検証 | Zod |
 | GitHub API | `@octokit/rest` |
 | LINE Messaging API | `@line/bot-sdk` |
-| GitHub Models | `fetch` で直接呼び出す |
+| LLM(要約) | `fetch` で OpenAI 互換 API を直接呼び出す |
 
 ## 3. 処理の流れ
 
@@ -37,7 +37,7 @@ flowchart LR
    - 状態がない(初回実行)場合は、実行開始時刻を `lastCheckedAt` として保存して終了する
 3. 監視対象リポジトリごとに Search API で Issue を検索する(4 章)
 4. 通知済みの Issue を除外する。残りが 0 件なら `lastCheckedAt` だけ更新して終了する
-5. 要約が有効なら、GitHub Models で全件をまとめて要約する。失敗した場合は要約なしで続行する
+5. 要約が有効なら、LLM で全件をまとめて要約する(7 章)。失敗した場合は要約なしで続行する
 6. 通知メッセージを組み立てる(6 章)
 7. LINE の当月の残り通数を確認する。残っていなければ状態を更新せずに正常終了する
 8. LINE に push する。失敗した場合は状態を更新せずに異常終了する
@@ -99,7 +99,27 @@ https://github.com/owner/repo/issues/123
 - 日時は日本時間(JST)で表示する
 - 5,000 文字に収まる件数まで詳細を載せ、収まらない分は「他 N 件」と件数だけ表示する
 
-## 7. 設定ファイル
+## 7. 日本語要約
+
+OpenAI 互換の Chat Completions API(`POST {baseUrl}/chat/completions`)を `fetch` で呼び出す。
+
+- 認証:Secret `SUMMARY_API_KEY` が設定されていれば `Authorization: Bearer` ヘッダーで送る
+- 1 回の実行で見つかった Issue をまとめて 1 リクエストで送る
+  - 各 Issue のキー(`owner/repo#123`)・タイトル・ラベル・本文を JSON にして渡す
+  - トークン数を抑えるため、本文は先頭から一定の文字数に切り詰める
+- LLM には、キーごとの要約を JSON オブジェクトで返すよう指示する
+
+  ```json
+  { "owner/repo#123": "日本語の要約" }
+  ```
+
+- 応答の検証
+  - コードブロック(```)で囲まれている場合は取り除いてから JSON として読む
+  - Zod で検証し、送ったキーに対応する要約だけを使う
+- 一定時間で応答がない場合はタイムアウトさせる
+- 通信エラー・タイムアウト・応答の形式不正のいずれも、警告をログに出して要約なしで続行する
+
+## 8. 設定ファイル
 
 リポジトリ直下の `config.yml`。
 
@@ -114,19 +134,21 @@ bodyPreviewLength: 100  # 本文冒頭の表示文字数(省略時 100)
 maxNotifiedHistory: 1000  # 通知済み Issue の保持件数(省略時 1000)
 
 summary:
-  enabled: false  # 日本語要約を使うか(省略時 false)
-  model: openai/gpt-4.1-mini  # GitHub Models のモデル名
+  enabled: true  # 日本語要約を使うか(summary ごと省略した場合は無効)
+  baseUrl: https://api.example.com/v1  # OpenAI 互換 API の接続先
+  model: model-name  # 利用するモデル名
 ```
 
-実行間隔は設定ファイルではなく、workflow の `cron` で指定する。
+- `summary.enabled` が `true` の場合は、`baseUrl` と `model` を必須とする
+- 実行間隔は設定ファイルではなく、workflow の `cron` で指定する
 
-## 8. GitHub Actions workflow
+## 9. GitHub Actions workflow
 
 `.github/workflows/notify.yml`
 
 - トリガー:`schedule`(デフォルト 30 分ごと)と、動作確認用の `workflow_dispatch`
 - `concurrency` を指定し、実行が重ならないようにする(状態の上書きを防ぐ)
-- `permissions`:`contents: read`、`models: read`(要約用)
+- `permissions`:`contents: read`
 
 ### Secrets
 
@@ -135,10 +157,11 @@ summary:
 | `LINE_CHANNEL_ACCESS_TOKEN` | Messaging API のチャネルアクセストークン |
 | `LINE_USER_ID` | 送信先(利用者本人)のユーザー ID |
 | `STATE_TOKEN` | Fine-grained PAT(権限:Variables の Read and write) |
+| `SUMMARY_API_KEY` | LLM サービスの API キー(要約を使う場合のみ。不要なサービスでは省略可) |
 
-Issue の検索と GitHub Models には Actions の `GITHUB_TOKEN` を使う。
+Issue の検索には Actions の `GITHUB_TOKEN` を使う。
 
-## 9. ディレクトリ構成
+## 10. ディレクトリ構成
 
 ```text
 .
@@ -150,7 +173,7 @@ Issue の検索と GitHub Models には Actions の `GITHUB_TOKEN` を使う。
 │   ├── config.ts    # 設定ファイルの読み込みと検証
 │   ├── state.ts     # 状態の読み書き
 │   ├── github.ts    # Issue の検索
-│   ├── summary.ts   # GitHub Models による要約
+│   ├── summary.ts   # LLM による要約
 │   ├── message.ts   # 通知メッセージの組み立て
 │   └── line.ts      # 残り通数の確認と push
 └── test/
