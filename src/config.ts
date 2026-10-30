@@ -4,7 +4,6 @@ import { z } from "zod";
 
 export const DEFAULT_BODY_PREVIEW_LENGTH = 100;
 export const DEFAULT_MAX_NOTIFIED_HISTORY = 1000;
-export const DEFAULT_SUMMARY_MODEL = "openai/gpt-4.1-mini";
 
 const repositorySchema = z.object({
   name: z
@@ -13,10 +12,15 @@ const repositorySchema = z.object({
   labels: z.array(z.string().min(1)).min(1),
 });
 
-const summarySchema = z.object({
-  enabled: z.boolean().default(false),
-  model: z.string().min(1).default(DEFAULT_SUMMARY_MODEL),
-});
+const summarySchema = z.discriminatedUnion("enabled", [
+  z.object({ enabled: z.literal(false) }),
+  z.object({
+    enabled: z.literal(true),
+    /** OpenAI 互換 API の接続先(例: https://api.example.com/v1) */
+    baseUrl: z.url(),
+    model: z.string().min(1),
+  }),
+]);
 
 const configSchema = z.object({
   repositories: z.array(repositorySchema).min(1),
@@ -30,11 +34,12 @@ const configSchema = z.object({
     .int()
     .positive()
     .default(DEFAULT_MAX_NOTIFIED_HISTORY),
-  summary: summarySchema.prefault({}),
+  summary: summarySchema.default({ enabled: false }),
 });
 
 export type Config = z.infer<typeof configSchema>;
 export type RepositoryConfig = z.infer<typeof repositorySchema>;
+export type SummaryConfig = Extract<Config["summary"], { enabled: true }>;
 
 export const parseConfig = (text: string): Config => {
   const result = configSchema.safeParse(parseYaml(text));

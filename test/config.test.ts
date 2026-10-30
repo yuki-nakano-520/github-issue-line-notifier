@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_BODY_PREVIEW_LENGTH,
   DEFAULT_MAX_NOTIFIED_HISTORY,
-  DEFAULT_SUMMARY_MODEL,
   parseConfig,
 } from "../src/config.js";
 
@@ -19,7 +18,7 @@ repositories:
       repositories: [{ name: "owner/repo", labels: ["good first issue"] }],
       bodyPreviewLength: DEFAULT_BODY_PREVIEW_LENGTH,
       maxNotifiedHistory: DEFAULT_MAX_NOTIFIED_HISTORY,
-      summary: { enabled: false, model: DEFAULT_SUMMARY_MODEL },
+      summary: { enabled: false },
     });
   });
 
@@ -34,7 +33,8 @@ bodyPreviewLength: 50
 maxNotifiedHistory: 200
 summary:
   enabled: true
-  model: openai/gpt-4o-mini
+  baseUrl: https://api.example.com/v1
+  model: model-name
 `);
 
     expect(config).toEqual({
@@ -44,23 +44,24 @@ summary:
       ],
       bodyPreviewLength: 50,
       maxNotifiedHistory: 200,
-      summary: { enabled: true, model: "openai/gpt-4o-mini" },
+      summary: {
+        enabled: true,
+        baseUrl: "https://api.example.com/v1",
+        model: "model-name",
+      },
     });
   });
 
-  it("summary の一部だけ指定した場合は残りにデフォルト値が入る", () => {
+  it("summary を無効にした場合は baseUrl と model がなくてもよい", () => {
     const config = parseConfig(`
 repositories:
   - name: owner/repo
     labels: [bug]
 summary:
-  enabled: true
+  enabled: false
 `);
 
-    expect(config.summary).toEqual({
-      enabled: true,
-      model: DEFAULT_SUMMARY_MODEL,
-    });
+    expect(config.summary).toEqual({ enabled: false });
   });
 
   it.each([
@@ -77,6 +78,14 @@ summary:
     [
       "bodyPreviewLength が 0 の場合",
       "repositories:\n  - name: owner/repo\n    labels: [bug]\nbodyPreviewLength: 0",
+    ],
+    [
+      "summary を有効にして model がない場合",
+      "repositories:\n  - name: owner/repo\n    labels: [bug]\nsummary:\n  enabled: true\n  baseUrl: https://api.example.com/v1",
+    ],
+    [
+      "summary.baseUrl が URL でない場合",
+      "repositories:\n  - name: owner/repo\n    labels: [bug]\nsummary:\n  enabled: true\n  baseUrl: example\n  model: model-name",
     ],
   ])("%sはエラーになる", (_, text) => {
     expect(() => parseConfig(text)).toThrow("設定ファイルが不正です");
