@@ -17,8 +17,10 @@ type SearchResultItem =
 /** Issue への変換に使う検索結果の項目 */
 export type SearchItem = Pick<
   SearchResultItem,
-  "number" | "title" | "html_url" | "created_at" | "body"
+  "number" | "title" | "html_url" | "created_at"
 > & {
+  /** 型定義では string だが、本文が空の Issue では実際には null が返る */
+  body?: string | null | undefined;
   labels: { name?: string | undefined }[];
   user: { login: string } | null;
 };
