@@ -1,5 +1,0 @@
-# 動作確認用の設定
-repositories:
-  - name: yuki-nakano-520/github-issue-line-notifier
-    labels:
-      - notifier-test
