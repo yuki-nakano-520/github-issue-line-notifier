@@ -1,0 +1,53 @@
+name: Notify new issues
+
+on:
+  schedule:
+    # 実行間隔(UTC)。毎時 0 分は混雑して遅れやすいため、ずらした時刻にしている
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+# 実行が重なって状態を上書きしないようにする
+concurrency:
+  group: notify
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Skip if config.yml does not exist
+        if: hashFiles('config.yml') == ''
+        run: echo "::notice::config.yml がないため、通知処理をスキップしました"
+
+      - uses: pnpm/action-setup@v6
+        if: hashFiles('config.yml') != ''
+
+      - uses: actions/setup-node@v7
+        if: hashFiles('config.yml') != ''
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        if: hashFiles('config.yml') != ''
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        if: hashFiles('config.yml') != ''
+        run: pnpm build
+
+      - name: Notify
+        if: hashFiles('config.yml') != ''
+        run: pnpm start
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STATE_TOKEN: ${{ secrets.STATE_TOKEN }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          SUMMARY_API_KEY: ${{ secrets.SUMMARY_API_KEY }}
