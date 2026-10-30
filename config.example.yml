@@ -1,0 +1,24 @@
+# 設定ファイルの記入例
+# このファイルを config.yml という名前でコピーし、内容を書き換えてコミットしてください。
+# config.yml がない間は、workflow は何もせずに終了します。
+
+# 監視するリポジトリと、通知対象とするラベル(いずれかのラベルが付いた Issue を通知します)
+repositories:
+  - name: owner/repo
+    labels:
+      - good first issue
+      - help wanted
+
+# 本文の冒頭を何文字まで表示するか(省略時 100)
+# bodyPreviewLength: 100
+
+# 通知済み Issue を何件まで記録しておくか(省略時 1000)
+# maxNotifiedHistory: 1000
+
+# 日本語要約(省略時は無効)
+# OpenAI 互換の Chat Completions API に対応したサービスを指定します。
+# API キーが必要なサービスでは、Secret SUMMARY_API_KEY に設定してください。
+# summary:
+#   enabled: true
+#   baseUrl: https://api.example.com/v1
+#   model: model-name
