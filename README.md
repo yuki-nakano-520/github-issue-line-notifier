@@ -27,9 +27,13 @@ https://github.com/owner/repo/issues/123
 
 ## セットアップ
 
-### 1. リポジトリを fork する
+### 1. 自分用のリポジトリを作る
 
-このリポジトリを fork します。fork したリポジトリでは Actions の定期実行が止まっているので、**Actions** タブを開いて workflow を有効にしてください。
+このリポジトリの **Use this template → Create a new repository** から、自分用のリポジトリを作ります。private にもできます。
+
+fork でも使えます。fork したリポジトリでは Actions の定期実行が止まっているので、**Actions** タブを開いて workflow を有効にしてください。
+
+private リポジトリでは、Actions の実行時間が無料枠(月 2,000 分)から消費されます。デフォルトの 30 分間隔なら月 1,500 分程度に収まる見込みですが、間隔を短くする場合は注意してください。
 
 ### 2. LINE の準備
 
@@ -44,7 +48,7 @@ https://github.com/owner/repo/issues/123
 前回どこまで確認したかを Repository variables に保存するため、書き込み権限のあるトークンが必要です。
 
 1. GitHub の [Fine-grained personal access tokens](https://github.com/settings/personal-access-tokens/new) を開きます
-2. **Repository access** で、fork したリポジトリだけを選びます
+2. **Repository access** で、手順 1 で作ったリポジトリだけを選びます
 3. **Permissions** で **Variables** を **Read and write** にします
 4. トークンを作成します
 
@@ -52,7 +56,7 @@ https://github.com/owner/repo/issues/123
 
 ### 4. Secrets を設定する
 
-fork したリポジトリの **Settings → Secrets and variables → Actions** で、次の Secrets を登録します。
+手順 1 で作ったリポジトリの **Settings → Secrets and variables → Actions** で、次の Secrets を登録します。
 
 | 名前 | 内容 |
 | --- | --- |
