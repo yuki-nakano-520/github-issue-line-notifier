@@ -1,0 +1,33 @@
+name: 機能の提案
+description: 新しい機能や改善を提案する
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提案ありがとうございます。
+        実装まで取り組んでいただける場合も、作業を始める前にこの Issue で方針を相談させてください。
+  - type: textarea
+    id: problem
+    attributes:
+      label: 困っていること
+      description: どんな場面で、何に困っているかを書いてください
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提案する内容
+      description: どうなれば解決するかを書いてください
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 検討したほかの方法
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: コントリビューション
+      options:
+        - label: この機能を自分で実装してみたい

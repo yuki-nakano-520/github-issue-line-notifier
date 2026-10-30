@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 脆弱性の報告
+    url: https://github.com/yuki-nakano-520/github-issue-line-notifier/security/advisories/new
+    about: 脆弱性は公開の Issue ではなく、こちらから非公開で報告してください
+  - name: セットアップ方法
+    url: https://github.com/yuki-nakano-520/github-issue-line-notifier#セットアップ
+    about: 使い方やセットアップの手順は README を確認してください

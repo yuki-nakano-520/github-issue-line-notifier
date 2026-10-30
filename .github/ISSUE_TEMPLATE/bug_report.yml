@@ -1,0 +1,50 @@
+name: 不具合の報告
+description: 期待どおりに動かない点を報告する
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        報告ありがとうございます。
+        **トークンやユーザー ID などの認証情報は書かないでください。** ログを貼る場合も、認証情報が含まれていないか確認してください。
+        脆弱性は Issue ではなく、[セキュリティポリシー](https://github.com/yuki-nakano-520/github-issue-line-notifier/blob/main/SECURITY.md)の方法で報告してください。
+  - type: textarea
+    id: description
+    attributes:
+      label: 不具合の内容
+      description: 何が起きたかを書いてください
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現の手順
+      placeholder: |
+        1. config.yml に〇〇を設定する
+        2. workflow を実行する
+        3. 〇〇になる
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動作
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: config.yml の内容
+      description: 関係がある場合のみ。監視対象のリポジトリ名などを伏せても構いません
+      render: yaml
+  - type: textarea
+    id: logs
+    attributes:
+      label: workflow のログ
+      description: Actions の実行ログのうち、エラーが出ている部分
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: 使っているバージョン
+      description: テンプレートや fork から作った時期、または取り込んだ最新のコミット
