@@ -1,0 +1,39 @@
+{
+  "name": "github-issue-line-notifier",
+  "version": "0.1.0",
+  "description": "GitHub の Issue を LINE に通知する",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "biome check .",
+    "check:fix": "biome check --write ."
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.16.1",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.16.1",
+  "dependencies": {
+    "@line/bot-sdk": "^11.4.0",
+    "@octokit/rest": "^22.0.1",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.4",
+    "@types/node": "^24.19.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
