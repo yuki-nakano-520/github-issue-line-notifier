@@ -153,7 +153,7 @@ summary:
 Node.js 24 以上と pnpm が必要です。
 
 ```bash
-pnpm install
+pnpm install    # コミット時に自動整形する git フックも有効になります
 pnpm check      # Lint・フォーマットの確認
 pnpm typecheck  # 型チェック
 pnpm test       # テスト

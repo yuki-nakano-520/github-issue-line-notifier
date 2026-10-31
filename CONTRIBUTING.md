@@ -37,6 +37,8 @@ corepack enable pnpm
    pnpm install
    ```
 
+   このとき、コミット時に Biome で自動整形する git フック(`.githooks/pre-commit`)も有効になります。
+
 3. 作業用のブランチを作ります(例:`feat/add-xxx`、`fix/xxx`、`docs/xxx`)
 
 ## よく使うコマンド
@@ -60,6 +62,8 @@ Pull Request を送る前に、`pnpm check`、`pnpm typecheck`、`pnpm test` が
 ## コーディング規約
 
 - フォーマットと Lint は Biome に従います(`pnpm check:fix` で自動修正できます)
+  - コミット時には、コミットするファイルが自動で整形されます。自動で直せない Lint エラーがある場合は、コミットが中止されます
+  - 一部の行だけをステージしたファイルは、整形のときにファイル全体がコミットに含まれます
 - TypeScript の `strict` を有効にしています。`any` と `unknown` は使わないでください
 - `class` は使わず、関数とオブジェクトで書いてください(`Error` の継承など、どうしても必要な場合を除く)
 - 値のハードコードは避け、意味のある名前の定数にしてください

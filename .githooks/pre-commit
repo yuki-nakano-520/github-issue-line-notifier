@@ -1,0 +1,5 @@
+#!/bin/sh
+# コミットするファイルを Biome で整形・修正し、修正後の内容をコミットに含める。
+# 自動で直せない Lint エラーがある場合は、コミットを中止する。
+pnpm exec biome check --write --staged --no-errors-on-unmatched || exit 1
+git update-index --again
