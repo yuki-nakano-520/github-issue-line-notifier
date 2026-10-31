@@ -93,9 +93,31 @@ repositories:
 | --- | --- | --- |
 | `repositories[].name` | 監視するリポジトリ(`owner/repo`) | 必須 |
 | `repositories[].labels` | 通知対象のラベル(いずれかが付いていれば通知) | 必須 |
+| `repositories[].exclude` | このリポジトリだけ除外の設定を変える(書いた項目だけ上書き) | 全体の `exclude` に従う |
+| `exclude` | 通知の対象から除外する Issue(下記) | 除外しない |
 | `bodyPreviewLength` | 本文の冒頭を何文字まで表示するか | `100` |
 | `maxNotifiedHistory` | 通知済み Issue を何件まで記録するか | `1000` |
 | `summary` | 日本語要約の設定(下記) | 無効 |
+
+### 除外の設定
+
+すでに誰かが取り組んでいる Issue を通知から外せます。
+
+```yaml
+exclude:
+  linkedPullRequest: true  # Pull Request が紐付いている Issue を除外する
+  assigned: true           # 担当者が決まっている Issue を除外する
+
+repositories:
+  - name: owner/repo
+    labels:
+      - good first issue
+    exclude:
+      assigned: false      # このリポジトリでは、担当者がいても通知する
+```
+
+- 「Pull Request が紐付いている」とは、`Fixes #123` などのキーワードや、Issue の **Development** 欄で関連付けられていることを指します。本文で Issue に触れているだけの Pull Request では除外されません
+- 判断するのは確認した時点の状態です。通知した後に Pull Request や担当者が付いても、通知は取り消されません
 
 ### 日本語要約(任意)
 

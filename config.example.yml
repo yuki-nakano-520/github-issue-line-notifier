@@ -8,6 +8,14 @@ repositories:
     labels:
       - good first issue
       - help wanted
+    # このリポジトリだけ除外の設定を変える場合(省略した項目は下の exclude に従います)
+    # exclude:
+    #   assigned: false
+
+# 通知の対象から除外する Issue(省略時はどちらも除外しません)
+# exclude:
+#   linkedPullRequest: true  # Pull Request が紐付いている Issue
+#   assigned: true           # 担当者が決まっている Issue
 
 # 本文の冒頭を何文字まで表示するか(省略時 100)
 # bodyPreviewLength: 100

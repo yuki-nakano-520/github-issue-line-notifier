@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Config } from "../src/config.js";
+import { type Config, DEFAULT_EXCLUDE } from "../src/config.js";
 import type { Issue } from "../src/issue.js";
 import { type RunDependencies, run } from "../src/run.js";
 import type { State } from "../src/state.js";
@@ -9,8 +9,12 @@ const LAST_CHECKED_AT = "2026-10-30T12:00:00.000Z";
 
 const config: Config = {
   repositories: [
-    { name: "owner/repo", labels: ["bug"] },
-    { name: "owner/other", labels: ["good first issue"] },
+    { name: "owner/repo", labels: ["bug"], exclude: DEFAULT_EXCLUDE },
+    {
+      name: "owner/other",
+      labels: ["good first issue"],
+      exclude: DEFAULT_EXCLUDE,
+    },
   ],
   bodyPreviewLength: 100,
   maxNotifiedHistory: 1000,

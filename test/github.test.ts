@@ -34,11 +34,42 @@ describe("buildSearchQuery", () => {
   it("いずれかのラベルが付いた open な Issue を更新日時で絞り込むクエリを作る", () => {
     expect(
       buildSearchQuery(
-        { name: "owner/repo", labels: ["good first issue", "bug"] },
+        {
+          name: "owner/repo",
+          labels: ["good first issue", "bug"],
+          exclude: { linkedPullRequest: false, assigned: false },
+        },
         "2026-10-30T11:50:00Z",
       ),
     ).toBe(
       'repo:owner/repo is:issue is:open label:"good first issue","bug" updated:>=2026-10-30T11:50:00Z',
+    );
+  });
+
+  it.each([
+    [
+      "Pull Request が紐付いた Issue",
+      { linkedPullRequest: true, assigned: false },
+      "-linked:pr",
+    ],
+    [
+      "担当者が決まっている Issue",
+      { linkedPullRequest: false, assigned: true },
+      "no:assignee",
+    ],
+    [
+      "両方",
+      { linkedPullRequest: true, assigned: true },
+      "-linked:pr no:assignee",
+    ],
+  ])("%sを除外する条件を加える", (_, exclude, qualifiers) => {
+    expect(
+      buildSearchQuery(
+        { name: "owner/repo", labels: ["bug"], exclude },
+        "2026-10-30T11:50:00Z",
+      ),
+    ).toBe(
+      `repo:owner/repo is:issue is:open label:"bug" ${qualifiers} updated:>=2026-10-30T11:50:00Z`,
     );
   });
 });

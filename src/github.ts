@@ -1,5 +1,5 @@
 import type { Octokit, RestEndpointMethodTypes } from "@octokit/rest";
-import type { RepositoryConfig } from "./config.js";
+import type { ExcludeConfig, RepositoryConfig } from "./config.js";
 import type { Issue } from "./issue.js";
 
 /** 検索インデックスへの反映の遅れによる取りこぼしを防ぐため、さかのぼって検索する時間 */
@@ -34,13 +34,35 @@ export const searchSince = (lastCheckedAt: string): string =>
     .toISOString()
     .replace(/\.\d{3}Z$/, "Z");
 
-/** 指定ラベルのいずれかが付いた open な Issue のうち、since 以降に更新されたものを探すクエリ */
+/** 除外の設定ごとに、クエリへ加える条件 */
+export const EXCLUDE_QUALIFIERS: readonly (readonly [
+  keyof ExcludeConfig,
+  string,
+])[] = [
+  ["linkedPullRequest", "-linked:pr"],
+  ["assigned", "no:assignee"],
+];
+
+/**
+ * 指定ラベルのいずれかが付いた open な Issue のうち、since 以降に更新されたものを探すクエリ。
+ * 除外の設定が有効なら、その条件も加える
+ */
 export const buildSearchQuery = (
   repository: RepositoryConfig,
   since: string,
 ): string => {
   const labels = repository.labels.map((label) => `"${label}"`).join(",");
-  return `repo:${repository.name} is:issue is:open label:${labels} updated:>=${since}`;
+  const excludes = EXCLUDE_QUALIFIERS.filter(
+    ([key]) => repository.exclude[key],
+  ).map(([, qualifier]) => qualifier);
+  return [
+    `repo:${repository.name}`,
+    "is:issue",
+    "is:open",
+    `label:${labels}`,
+    ...excludes,
+    `updated:>=${since}`,
+  ].join(" ");
 };
 
 export const toIssue = (repository: string, item: SearchItem): Issue => ({

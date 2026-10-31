@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_BODY_PREVIEW_LENGTH,
+  DEFAULT_EXCLUDE,
   DEFAULT_MAX_NOTIFIED_HISTORY,
   parseConfig,
 } from "../src/config.js";
@@ -15,7 +16,13 @@ repositories:
 `);
 
     expect(config).toEqual({
-      repositories: [{ name: "owner/repo", labels: ["good first issue"] }],
+      repositories: [
+        {
+          name: "owner/repo",
+          labels: ["good first issue"],
+          exclude: DEFAULT_EXCLUDE,
+        },
+      ],
       bodyPreviewLength: DEFAULT_BODY_PREVIEW_LENGTH,
       maxNotifiedHistory: DEFAULT_MAX_NOTIFIED_HISTORY,
       summary: { enabled: false },
@@ -39,8 +46,16 @@ summary:
 
     expect(config).toEqual({
       repositories: [
-        { name: "owner/repo", labels: ["bug", "help wanted"] },
-        { name: "other-owner/other.repo", labels: ["good first issue"] },
+        {
+          name: "owner/repo",
+          labels: ["bug", "help wanted"],
+          exclude: DEFAULT_EXCLUDE,
+        },
+        {
+          name: "other-owner/other.repo",
+          labels: ["good first issue"],
+          exclude: DEFAULT_EXCLUDE,
+        },
       ],
       bodyPreviewLength: 50,
       maxNotifiedHistory: 200,
@@ -62,6 +77,61 @@ summary:
 `);
 
     expect(config.summary).toEqual({ enabled: false });
+  });
+
+  it("全体の exclude がリポジトリごとの既定値になる", () => {
+    const config = parseConfig(`
+repositories:
+  - name: owner/repo
+    labels: [bug]
+exclude:
+  linkedPullRequest: true
+  assigned: true
+`);
+
+    expect(config.repositories[0]?.exclude).toEqual({
+      linkedPullRequest: true,
+      assigned: true,
+    });
+  });
+
+  it("リポジトリの exclude は、書いた項目だけ全体の設定を上書きする", () => {
+    const config = parseConfig(`
+repositories:
+  - name: owner/repo
+    labels: [bug]
+    exclude:
+      assigned: false
+  - name: owner/other
+    labels: [bug]
+exclude:
+  linkedPullRequest: true
+  assigned: true
+`);
+
+    expect(config.repositories.map((repository) => repository.exclude)).toEqual(
+      [
+        { linkedPullRequest: true, assigned: false },
+        { linkedPullRequest: true, assigned: true },
+      ],
+    );
+  });
+
+  it("全体の exclude で省略した項目は除外しない", () => {
+    const config = parseConfig(`
+repositories:
+  - name: owner/repo
+    labels: [bug]
+    exclude:
+      assigned: true
+exclude:
+  linkedPullRequest: true
+`);
+
+    expect(config.repositories[0]?.exclude).toEqual({
+      linkedPullRequest: true,
+      assigned: true,
+    });
   });
 
   it.each([
@@ -86,6 +156,10 @@ summary:
     [
       "summary.baseUrl が URL でない場合",
       "repositories:\n  - name: owner/repo\n    labels: [bug]\nsummary:\n  enabled: true\n  baseUrl: example\n  model: model-name",
+    ],
+    [
+      "exclude の値が真偽値でない場合",
+      "repositories:\n  - name: owner/repo\n    labels: [bug]\nexclude:\n  assigned: yes",
     ],
   ])("%sはエラーになる", (_, text) => {
     expect(() => parseConfig(text)).toThrow("設定ファイルが不正です");
