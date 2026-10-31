@@ -14,8 +14,8 @@ repositories:
 
 # 通知の対象から除外する Issue(省略時はどちらも除外しません)
 # exclude:
-#   linkedPullRequest: true  # Pull Request が紐付いている Issue
-#   assigned: true           # 担当者が決まっている Issue
+#   linkedPullRequest: true # Pull Request が紐付いている Issue
+#   assigned: true # 担当者が決まっている Issue
 
 # 本文の冒頭を何文字まで表示するか(省略時 100)
 # bodyPreviewLength: 100
