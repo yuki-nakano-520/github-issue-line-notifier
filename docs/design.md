@@ -56,6 +56,15 @@ repo:{owner}/{repo} is:issue is:open label:"{label1}","{label2}" updated:>={sinc
 - ラベルが後から付いた Issue も拾えるよう、作成日時ではなく更新日時(`updated`)で絞り込む
 - `since` は `lastCheckedAt` から 10 分前の時刻にする。検索インデックスへの反映の遅れによる取りこぼしを防ぐためで、重複分は通知済みの記録で除外する
 - 結果が複数ページになる場合はすべて取得する
+- 除外の設定(8 章)が有効な場合は、クエリに次の条件を加える
+
+  | 設定 | 加える条件 | 意味 |
+  | --- | --- | --- |
+  | `exclude.linkedPullRequest` | `-linked:pr` | Pull Request が紐付いていない |
+  | `exclude.assigned` | `no:assignee` | 担当者がいない |
+
+  - 「紐付いている」とは、`Fixes #123` などのキーワードや Issue の Development 欄で関連付けられていることを指す。本文で Issue に触れているだけの Pull Request は対象外
+  - 判断するのは検索した時点の状態のため、通知した後に Pull Request や担当者が付いても通知は取り消さない
 
 ## 5. 状態
 
@@ -130,6 +139,12 @@ repositories:
     labels:
       - good first issue
       - help wanted
+    exclude:
+      assigned: false  # このリポジトリだけ上書きする(省略した項目は全体の設定に従う)
+
+exclude:  # 通知の対象から除外する Issue(省略時はどちらも false)
+  linkedPullRequest: true  # Pull Request が紐付いている Issue
+  assigned: true  # 担当者が決まっている Issue
 
 bodyPreviewLength: 100  # 本文冒頭の表示文字数(省略時 100)
 maxNotifiedHistory: 1000  # 通知済み Issue の保持件数(省略時 1000)
